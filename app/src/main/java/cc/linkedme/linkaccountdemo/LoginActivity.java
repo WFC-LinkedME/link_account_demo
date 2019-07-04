@@ -7,9 +7,11 @@ import android.content.ClipboardManager;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -25,8 +27,6 @@ import cc.lkme.linkaccount.callback.TokenResultListener;
 public class LoginActivity extends AppCompatActivity {
 
     private static final int REQ_READ_PHONE_STATE = 10001;
-
-    private boolean firstEnter = true;
 
     private Button login;
     private TextView register;
@@ -47,10 +47,15 @@ public class LoginActivity extends AppCompatActivity {
         register = findViewById(R.id.register);
         phone = findViewById(R.id.phone);
 
+        // 先初始化LinkAccount监听，再调用预登录接口
         initLinkAccount();
         if (Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                // 请求权限
                 requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, REQ_READ_PHONE_STATE);
+            } else {
+                // 预登录
+                LinkAccount.getInstance().preLogin(5000);
             }
         }
 
@@ -79,12 +84,22 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        if (!firstEnter) {
-            LinkAccount.getInstance().preLogin(5000);
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_READ_PHONE_STATE) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                LinkAccount.getInstance().preLogin(5000);
+            } else {
+                Toast.makeText(this, "无法使用一键登录及号码认证功能！", Toast.LENGTH_SHORT).show();
+                login.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        finish();
+                    }
+                }, 2000);
+            }
         }
-
     }
 
     private void initLinkAccount() {
@@ -94,15 +109,16 @@ public class LoginActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        System.out.println("preLogin====" + tokenResult);
+                        hideLoadingDialog();
                         ClipboardManager cbm = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                         cbm.setPrimaryClip(ClipData.newPlainText("tokenResult", tokenResult.toString()));
                         Toast.makeText(LoginActivity.this, "已复制到剪切板", Toast.LENGTH_SHORT).show();
                         switch (resultType) {
                             case AbilityType.ABILITY_ACCESS_CODE:
-
+                                Log.i("LinkAccountDemo", "preLogin tokenResult == " + tokenResult.toString());
                                 break;
                             case AbilityType.ABILITY_TOKEN:
+                                Log.i("LinkAccountDemo", "getLoginToken tokenResult == " + tokenResult.toString());
                                 LinkAccount.getInstance().quitAuthActivity();
                                 token = tokenResult.getAccessToken();
                                 authCode = tokenResult.getGwAuth();
@@ -110,7 +126,7 @@ public class LoginActivity extends AppCompatActivity {
                                 operator = tokenResult.getOperatorType();
                                 break;
                             case AbilityType.ABILITY_MOBILE_TOKEN:
-                                LinkAccount.getInstance().quitAuthActivity();
+                                Log.i("LinkAccountDemo", "getMobileToken tokenResult == " + tokenResult.toString());
                                 token = tokenResult.getAccessToken();
                                 authCode = tokenResult.getGwAuth();
                                 platform = tokenResult.getPlatform();
@@ -129,16 +145,13 @@ public class LoginActivity extends AppCompatActivity {
                         hideLoadingDialog();
                         switch (resultType) {
                             case AbilityType.ABILITY_ACCESS_CODE:
+                                Log.i("LinkAccountDemo", "preLogin failedResult == " + info);
                                 break;
                             case AbilityType.ABILITY_TOKEN:
-                                if (info.contains("\"resultCode\":10011")) {
-                                    LinkAccount.getInstance().preLogin(500);
-                                }
+                                Log.i("LinkAccountDemo", "getLoginToken failedResult == " + info);
                                 break;
                             case AbilityType.ABILITY_MOBILE_TOKEN:
-                                if (info.contains("\"resultCode\":10011")) {
-                                    LinkAccount.getInstance().preLogin(500);
-                                }
+                                Log.i("LinkAccountDemo", "getMobileToken failedResult == " + info);
                                 break;
                         }
                     }
@@ -146,16 +159,9 @@ public class LoginActivity extends AppCompatActivity {
 
             }
         });
-        // 预取号
-        login.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                LinkAccount.getInstance().preLogin(5000);
-                firstEnter = false;
-            }
-        }, 1000);
         AuthUIConfig.Builder builder = new AuthUIConfig.Builder();
         builder.setNavText("LinkAccount");
+        builder.setCheckboxDrawable("linkaccount_check");
         builder.setSwitchClicker(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

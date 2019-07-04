@@ -27,7 +27,7 @@ public class DeveloperActivity extends AppCompatActivity implements View.OnClick
     private static final String TAG = DeveloperActivity.class.getSimpleName();
     private static final int REQ_READ_PHONE_STATE = 10001;
     private Button accessCodeBtn, login, mobile;
-    
+
     private String token;
     private String authCode;
     private String platform;
@@ -39,18 +39,18 @@ public class DeveloperActivity extends AppCompatActivity implements View.OnClick
         setContentView(R.layout.activity_developer);
         initializeLogging();
         initView();
-        initLinkAccount();
         initListener();
+        // 先初始化LinkAccount监听，再调用预登录接口
+        initLinkAccount();
         if (Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                // 请求权限
                 requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, REQ_READ_PHONE_STATE);
+            } else {
+                // 预登录
+                LinkAccount.getInstance().preLogin(5000);
             }
         }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
     }
 
     private void initLinkAccount() {
@@ -60,15 +60,15 @@ public class DeveloperActivity extends AppCompatActivity implements View.OnClick
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        System.out.println("preLogin====" + tokenResult);
                         ClipboardManager cbm = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                         cbm.setPrimaryClip(ClipData.newPlainText("tokenResult", tokenResult.toString()));
                         Toast.makeText(DeveloperActivity.this, "已复制到剪切板", Toast.LENGTH_SHORT).show();
                         switch (resultType) {
                             case AbilityType.ABILITY_ACCESS_CODE:
-
+                                Log.i("LinkAccountDemo", "preLogin tokenResult == " + tokenResult.toString());
                                 break;
                             case AbilityType.ABILITY_TOKEN:
+                                Log.i("LinkAccountDemo", "getLoginToken tokenResult == " + tokenResult.toString());
                                 LinkAccount.getInstance().quitAuthActivity();
                                 token = tokenResult.getAccessToken();
                                 authCode = tokenResult.getGwAuth();
@@ -76,7 +76,7 @@ public class DeveloperActivity extends AppCompatActivity implements View.OnClick
                                 operator = tokenResult.getOperatorType();
                                 break;
                             case AbilityType.ABILITY_MOBILE_TOKEN:
-                                LinkAccount.getInstance().quitAuthActivity();
+                                Log.i("LinkAccountDemo", "getMobileToken tokenResult == " + tokenResult.toString());
                                 token = tokenResult.getAccessToken();
                                 authCode = tokenResult.getGwAuth();
                                 platform = tokenResult.getPlatform();
@@ -94,16 +94,13 @@ public class DeveloperActivity extends AppCompatActivity implements View.OnClick
                     public void run() {
                         switch (resultType) {
                             case AbilityType.ABILITY_ACCESS_CODE:
+                                Log.i("LinkAccountDemo", "preLogin failedResult == " + info);
                                 break;
                             case AbilityType.ABILITY_TOKEN:
-                                if (info.contains("\"resultCode\":10011")) {
-                                    LinkAccount.getInstance().preLogin(500);
-                                }
+                                Log.i("LinkAccountDemo", "getLoginToken failedResult == " + info);
                                 break;
                             case AbilityType.ABILITY_MOBILE_TOKEN:
-                                if (info.contains("\"resultCode\":10011")) {
-                                    LinkAccount.getInstance().preLogin(500);
-                                }
+                                Log.i("LinkAccountDemo", "getMobileToken failedResult == " + info);
                                 break;
                         }
                     }
@@ -111,9 +108,8 @@ public class DeveloperActivity extends AppCompatActivity implements View.OnClick
 
             }
         });
-
         AuthUIConfig.Builder builder = new AuthUIConfig.Builder();
-        builder.setNavText("LinkedME");
+        builder.setNavText("LinkAccount");
         builder.setCheckboxDrawable("linkaccount_check");
         builder.setSwitchClicker(new View.OnClickListener() {
             @Override
@@ -124,18 +120,17 @@ public class DeveloperActivity extends AppCompatActivity implements View.OnClick
         LinkAccount.getInstance().setAuthUIConfig(builder.create());
     }
 
-    private void initListener() {
-        accessCodeBtn.setOnClickListener(this);
-        login.setOnClickListener(this);
-        mobile.setOnClickListener(this);
-    }
-
     private void initView() {
         accessCodeBtn = findViewById(R.id.access_code);
         login = findViewById(R.id.login);
         mobile = findViewById(R.id.mobile);
     }
 
+    private void initListener() {
+        accessCodeBtn.setOnClickListener(this);
+        login.setOnClickListener(this);
+        mobile.setOnClickListener(this);
+    }
 
     @Override
     public void onClick(View view) {
