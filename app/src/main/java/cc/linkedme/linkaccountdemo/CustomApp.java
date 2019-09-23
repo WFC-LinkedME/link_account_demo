@@ -7,7 +7,7 @@ import cc.lkme.linkaccount.LinkAccount;
 
 public class CustomApp extends Application {
 
-    private String appKey = "LinkAccount Key";
+    private String appKey = "7e289a2484f4368dbafbd1e5c7d06903";
 
     @Override
     public void onCreate() {
