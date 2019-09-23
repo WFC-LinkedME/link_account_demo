@@ -13,8 +13,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -160,7 +163,41 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
         AuthUIConfig.Builder builder = new AuthUIConfig.Builder();
-        builder.setNavText("LinkAccount");
+        builder.setStatusBarLight(true)
+                .setBackgroundColor(R.color.red)
+//                .setStatusBarColor(R.color.translucent)
+                .setNavText("蜻蜓FM")
+                .setNavHidden(true)
+
+                .setLogoHeight(96)
+                .setLogoOffsetY(10)
+
+                .setNumberOffsetY(116)
+//                .setNumberColor(R.color.white)
+
+                .setSloganOffsetY(152)
+
+                .setLogBtnWidth(250)
+                .setLogBtnOffsetY(184)
+                .setLogBtnBackgroundDrawable(ContextCompat.getDrawable(LoginActivity.this, R.drawable.linkaccount_login))
+
+                .setSwitchOffsetY(246)
+//                .setSwitchOffsetY(10)
+//                .setSwitchOffsetBottomY(10)
+//                .setSwitchOffsetX(10)
+//                .setSwitchOffsetRightX(10)
+
+                .setAppPrivacyOne("LinkedME", "http://www.linkedme.cc")
+                .setPrivacyOffsetBottomY(6)
+                .setPrivacyOffsetX(16)
+                .setPrivacyOffsetRightX(16)
+                .setPrivacyDecorator("登录即同意", "和", "、", "");
+        ProgressBar progressBar = new ProgressBar(this);
+        progressBar.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        progressBar.setBackgroundColor(getResources().getColor(R.color.black));
+        builder.setLoadingView(progressBar);
+
+
         builder.setCheckboxDrawable("linkaccount_check");
         builder.setSwitchClicker(new View.OnClickListener() {
             @Override
