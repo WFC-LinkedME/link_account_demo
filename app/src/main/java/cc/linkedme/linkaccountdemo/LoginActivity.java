@@ -1,9 +1,8 @@
 package cc.linkedme.linkaccountdemo;
 
 import android.Manifest;
-import android.app.ProgressDialog;
-import android.content.ClipData;
-import android.content.ClipboardManager;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,47 +10,33 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import cc.lkme.linkaccount.AuthUIConfig;
 import cc.lkme.linkaccount.LinkAccount;
-import cc.lkme.linkaccount.callback.AbilityType;
-import cc.lkme.linkaccount.callback.TokenResult;
-import cc.lkme.linkaccount.callback.TokenResultListener;
 
 public class LoginActivity extends AppCompatActivity {
 
     private static final int REQ_READ_PHONE_STATE = 10001;
 
-    private Button login;
-    private TextView register;
+    private Button login, portraitActivity, portraitDialog, landscapeActivity, landscapeDialog;
     private EditText phone;
-    private ProgressDialog mProgressDialog;
 
-
-    private String token;
-    private String authCode;
-    private String platform;
-    private String operator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         login = findViewById(R.id.login);
-        register = findViewById(R.id.register);
+        portraitActivity = findViewById(R.id.portrait_activity);
+        portraitDialog = findViewById(R.id.portrait_dialog);
+        landscapeActivity = findViewById(R.id.landscape_activity);
+        landscapeDialog = findViewById(R.id.landscape_dialog);
         phone = findViewById(R.id.phone);
-
         // 先初始化LinkAccount监听，再调用预登录接口
-        initLinkAccount();
+
         if (Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
                 // 请求权限
@@ -69,21 +54,44 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(LoginActivity.this, "请输入手机号", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                showLoadingDialog("正在认证");
-                // 号码认证
                 LinkAccount.getInstance().getMobileCode(5000);
             }
         });
 
-        register.setOnClickListener(new View.OnClickListener() {
+        portraitActivity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showLoadingDialog("正在一键登录");
-                // 一键登录
-                LinkAccount.getInstance().getLoginToken(5000);
-
+                LinkAccount.getInstance().setAuthUIConfig(LinkAccountAuthUIUtil.getPortraitActivity(LoginActivity.this));
+                startTransferActivity(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             }
         });
+        portraitDialog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LinkAccount.getInstance().setAuthUIConfig(LinkAccountAuthUIUtil.getPortraitDialog(LoginActivity.this));
+                startTransferActivity(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            }
+        });
+        landscapeActivity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LinkAccount.getInstance().setAuthUIConfig(LinkAccountAuthUIUtil.getLandscapeActivity(LoginActivity.this));
+                startTransferActivity(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            }
+        });
+        landscapeDialog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LinkAccount.getInstance().setAuthUIConfig(LinkAccountAuthUIUtil.getLandscapeDialog(LoginActivity.this));
+                startTransferActivity(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            }
+        });
+    }
+
+    private void startTransferActivity(int orientation) {
+        Intent intent = new Intent(LoginActivity.this, TransferActivity.class);
+        intent.putExtra("orientation", orientation);
+        startActivity(intent);
     }
 
     @Override
@@ -104,127 +112,5 @@ public class LoginActivity extends AppCompatActivity {
             }
         }
     }
-
-    private void initLinkAccount() {
-        LinkAccount.getInstance().setTokenResultListener(new TokenResultListener() {
-            @Override
-            public void onSuccess(@AbilityType final int resultType, final TokenResult tokenResult, final String originResult) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        hideLoadingDialog();
-                        ClipboardManager cbm = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                        cbm.setPrimaryClip(ClipData.newPlainText("tokenResult", tokenResult.toString()));
-                        Toast.makeText(LoginActivity.this, "已复制到剪切板", Toast.LENGTH_SHORT).show();
-                        switch (resultType) {
-                            case AbilityType.ABILITY_ACCESS_CODE:
-                                Log.i("LinkAccountDemo", "preLogin tokenResult == " + tokenResult.toString());
-                                break;
-                            case AbilityType.ABILITY_TOKEN:
-                                Log.i("LinkAccountDemo", "getLoginToken tokenResult == " + tokenResult.toString());
-                                LinkAccount.getInstance().quitAuthActivity();
-                                token = tokenResult.getAccessToken();
-                                authCode = tokenResult.getGwAuth();
-                                platform = tokenResult.getPlatform();
-                                operator = tokenResult.getOperatorType();
-                                break;
-                            case AbilityType.ABILITY_MOBILE_TOKEN:
-                                Log.i("LinkAccountDemo", "getMobileToken tokenResult == " + tokenResult.toString());
-                                token = tokenResult.getAccessToken();
-                                authCode = tokenResult.getGwAuth();
-                                platform = tokenResult.getPlatform();
-                                operator = tokenResult.getOperatorType();
-                                break;
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void onFailed(final int resultType, final String info) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        hideLoadingDialog();
-                        switch (resultType) {
-                            case AbilityType.ABILITY_ACCESS_CODE:
-                                Log.i("LinkAccountDemo", "preLogin failedResult == " + info);
-                                break;
-                            case AbilityType.ABILITY_TOKEN:
-                                Log.i("LinkAccountDemo", "getLoginToken failedResult == " + info);
-                                break;
-                            case AbilityType.ABILITY_MOBILE_TOKEN:
-                                Log.i("LinkAccountDemo", "getMobileToken failedResult == " + info);
-                                break;
-                        }
-                    }
-                });
-
-            }
-        });
-        AuthUIConfig.Builder builder = new AuthUIConfig.Builder();
-        builder.setStatusBarLight(true)
-                .setBackgroundColor(R.color.red)
-//                .setStatusBarColor(R.color.translucent)
-                .setNavText("蜻蜓FM")
-                .setNavHidden(true)
-
-                .setLogoHeight(96)
-                .setLogoOffsetY(10)
-
-                .setNumberOffsetY(116)
-//                .setNumberColor(R.color.white)
-
-                .setSloganOffsetY(152)
-
-                .setLogBtnWidth(250)
-                .setLogBtnOffsetY(184)
-                .setLogBtnBackgroundDrawable(ContextCompat.getDrawable(LoginActivity.this, R.drawable.linkaccount_login))
-
-                .setSwitchOffsetY(246)
-//                .setSwitchOffsetY(10)
-//                .setSwitchOffsetBottomY(10)
-//                .setSwitchOffsetX(10)
-//                .setSwitchOffsetRightX(10)
-
-                .setAppPrivacyOne("LinkedME", "http://www.linkedme.cc")
-                .setPrivacyOffsetBottomY(6)
-                .setPrivacyOffsetX(16)
-                .setPrivacyOffsetRightX(16)
-                .setPrivacyDecorator("登录即同意", "和", "、", "");
-        ProgressBar progressBar = new ProgressBar(this);
-        progressBar.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        progressBar.setBackgroundColor(getResources().getColor(R.color.black));
-        builder.setLoadingView(progressBar);
-
-
-        builder.setCheckboxDrawable("linkaccount_check");
-        builder.setSwitchClicker(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(LoginActivity.this, "switch", Toast.LENGTH_SHORT).show();
-            }
-        });
-        LinkAccount.getInstance().setAuthUIConfig(builder.create());
-    }
-
-
-    public void showLoadingDialog(String hint) {
-        if (mProgressDialog == null) {
-            mProgressDialog = new ProgressDialog(this);
-            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        }
-        mProgressDialog.setMessage(hint);
-        mProgressDialog.setCancelable(true);
-        mProgressDialog.show();
-    }
-
-    public void hideLoadingDialog() {
-        if (mProgressDialog != null)
-            if (mProgressDialog.isShowing()) {
-                mProgressDialog.dismiss();
-            }
-    }
-
 
 }

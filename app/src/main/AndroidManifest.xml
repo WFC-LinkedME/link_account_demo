@@ -36,14 +36,20 @@
                 android:name="cc.lkme.linkaccount.LoginAuthActivity"
                 android:configChanges="orientation|keyboardHidden|screenSize"
                 android:launchMode="singleTop"
-                android:screenOrientation="portrait">
+                android:theme="@style/dialogStyle">
         </activity> <!-- LinkAccount end -->
         <!-- 中国移动 start -->
         <activity
                 android:name="com.cmic.sso.sdk.activity.LoginAuthActivity"
                 android:configChanges="orientation|keyboardHidden|screenSize"
                 android:launchMode="singleTop"
-                android:screenOrientation="portrait">
+                android:theme="@style/dialogStyle">
+        </activity>
+
+        <activity
+                android:name=".TransferActivity"
+                android:configChanges="orientation|keyboardHidden|screenSize"
+                android:launchMode="singleTop">
         </activity>
     </application>
 
