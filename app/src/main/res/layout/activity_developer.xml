@@ -3,6 +3,7 @@
 <android.support.constraint.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -25,11 +26,11 @@
             app:layout_constraintTop_toTopOf="parent"/>
 
     <Button
-            android:text="获取一键登录Token"
+            android:text="一键登录"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:id="@+id/login"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="32dp"
             app:layout_constraintTop_toBottomOf="@+id/access_code"
             app:layout_constraintStart_toStartOf="parent"
             android:layout_marginLeft="8dp"
@@ -50,7 +51,7 @@
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@+id/login"/>
+            app:layout_constraintTop_toBottomOf="@+id/login_white"/>
 
     <fragment
             android:name="cc.linkedme.linkaccountdemo.logger.LogFragment"
@@ -67,7 +68,21 @@
             app:layout_constraintTop_toBottomOf="@+id/mobile"
             android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginTop="24dp"/>
+            android:layout_marginTop="8dp"/>
+
+    <Button
+            android:text="获取一键登录TOKEN（无界面/需要白名单）"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/login_white"
+            app:layout_constraintTop_toBottomOf="@+id/login"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"/>
 
 </android.support.constraint.ConstraintLayout>
 
