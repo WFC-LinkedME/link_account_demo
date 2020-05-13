@@ -1,26 +1,21 @@
 package cc.linkedme.linkaccountdemo;
 
-import android.Manifest;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import cc.linkedme.linkaccountdemo.logger.LogFragment;
+import cc.linkedme.linkaccountdemo.logger.LogWrapper;
+import cc.linkedme.linkaccountdemo.logger.MessageOnlyLogFilter;
 import cc.lkme.linkaccount.LinkAccount;
 import cc.lkme.linkaccount.callback.AbilityType;
 import cc.lkme.linkaccount.callback.TokenResult;
 import cc.lkme.linkaccount.callback.TokenResultListener;
-import cc.linkedme.linkaccountdemo.logger.LogFragment;
-import cc.linkedme.linkaccountdemo.logger.LogWrapper;
-import cc.linkedme.linkaccountdemo.logger.MessageOnlyLogFilter;
 
 public class DeveloperActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -42,11 +37,6 @@ public class DeveloperActivity extends AppCompatActivity implements View.OnClick
         initView();
         initListener();
         initLinkAccount();
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, REQ_READ_PHONE_STATE);
-            }
-        }
     }
 
     @Override
@@ -55,6 +45,7 @@ public class DeveloperActivity extends AppCompatActivity implements View.OnClick
     }
 
     private void initLinkAccount() {
+        // ***********先初始化LinkAccount监听，再调用预登录接口***********
         LinkAccount.getInstance().setTokenResultListener(new TokenResultListener() {
             @Override
             public void onSuccess(@AbilityType final int resultType, final TokenResult tokenResult, final String originResult) {
@@ -143,12 +134,6 @@ public class DeveloperActivity extends AppCompatActivity implements View.OnClick
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.access_code:
-                if (Build.VERSION.SDK_INT >= 23) {
-                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                        requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, REQ_READ_PHONE_STATE);
-                        return;
-                    }
-                }
                 // 预取号
                 LinkAccount.getInstance().preLogin(5000);
                 break;
@@ -184,19 +169,6 @@ public class DeveloperActivity extends AppCompatActivity implements View.OnClick
                 break;
             default:
                 break;
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQ_READ_PHONE_STATE) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                LinkAccount.getInstance().preLogin(5000);
-            } else {
-                Toast.makeText(this, "不授权，无法使用一键登录及号码认证功能！", Toast.LENGTH_SHORT).show();
-            }
         }
     }
 

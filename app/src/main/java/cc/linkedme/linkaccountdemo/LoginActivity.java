@@ -1,13 +1,10 @@
 package cc.linkedme.linkaccountdemo;
 
-import android.Manifest;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
@@ -16,6 +13,9 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import cc.lkme.linkaccount.LinkAccount;
+import cc.lkme.linkaccount.callback.AbilityType;
+import cc.lkme.linkaccount.callback.TokenResult;
+import cc.lkme.linkaccount.callback.TokenResultListener;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -23,7 +23,11 @@ public class LoginActivity extends AppCompatActivity {
 
     private Button login, portraitActivity, portraitDialog, landscapeActivity, landscapeDialog;
     private EditText phone;
-
+    private String token;
+    private String authCode;
+    private String platform;
+    private String operator;
+    private boolean accessCodeSucceed = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,17 +39,61 @@ public class LoginActivity extends AppCompatActivity {
         landscapeActivity = findViewById(R.id.landscape_activity);
         landscapeDialog = findViewById(R.id.landscape_dialog);
         phone = findViewById(R.id.phone);
-        // 先初始化LinkAccount监听，再调用预登录接口
-
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                // 请求权限
-                requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, REQ_READ_PHONE_STATE);
-            } else {
-                // 预登录
-                LinkAccount.getInstance().preLogin(5000);
+        // ************先初始化LinkAccount监听，再调用预登录接口*************
+        LinkAccount.getInstance().setTokenResultListener(new TokenResultListener() {
+            @Override
+            public void onSuccess(@AbilityType final int resultType, final TokenResult tokenResult, final String originResult) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ClipboardManager cbm = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                        cbm.setPrimaryClip(ClipData.newPlainText("tokenResult", tokenResult.toString()));
+                        Toast.makeText(LoginActivity.this, "已复制到剪切板", Toast.LENGTH_SHORT).show();
+                        switch (resultType) {
+                            case AbilityType.ABILITY_ACCESS_CODE:
+                                accessCodeSucceed = false;
+                                break;
+                            case AbilityType.ABILITY_TOKEN:
+                                LinkAccount.getInstance().quitAuthActivity();
+                                token = tokenResult.getAccessToken();
+                                authCode = tokenResult.getGwAuth();
+                                platform = tokenResult.getPlatform();
+                                operator = getChannel(tokenResult.getOperatorType());
+                                break;
+                            case AbilityType.ABILITY_MOBILE_TOKEN:
+                                LinkAccount.getInstance().quitAuthActivity();
+                                token = tokenResult.getAccessToken();
+                                authCode = tokenResult.getGwAuth();
+                                platform = tokenResult.getPlatform();
+                                operator = getChannel(tokenResult.getOperatorType());
+                                break;
+                        }
+                    }
+                });
             }
-        }
+
+            @Override
+            public void onFailed(final int resultType, final String info) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        switch (resultType) {
+                            case AbilityType.ABILITY_ACCESS_CODE:
+                                accessCodeSucceed = false;
+                                break;
+                            case AbilityType.ABILITY_TOKEN:
+                                break;
+                            case AbilityType.ABILITY_MOBILE_TOKEN:
+                                break;
+                        }
+                    }
+                });
+
+            }
+        });
+
+        // 预登录
+        LinkAccount.getInstance().preLogin(5000);
 
         login.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,7 +102,12 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(LoginActivity.this, "请输入手机号", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                LinkAccount.getInstance().getMobileCode(5000);
+                if (accessCodeSucceed) {
+                    LinkAccount.getInstance().getMobileCode(5000);
+                    accessCodeSucceed = false;
+                } else {
+                    Toast.makeText(LoginActivity.this, "请调用预取号接口！", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -94,23 +147,18 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQ_READ_PHONE_STATE) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                LinkAccount.getInstance().preLogin(5000);
-            } else {
-                Toast.makeText(this, "无法使用一键登录及号码认证功能！", Toast.LENGTH_SHORT).show();
-                login.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        finish();
-                    }
-                }, 2000);
-            }
+    private String getChannel(String operatorType) {
+        String channel = "0";
+        switch (operatorType) {
+            case "CT":
+                channel = "1";
+                break;
+            case "CU":
+                channel = "2";
+                break;
         }
+        return channel;
+
     }
 
 }
