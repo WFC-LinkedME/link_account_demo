@@ -20,6 +20,44 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+-optimizationpasses 5 #表示proguard对代码进行迭代优化的次数，Android一般为5
+-dontoptimize #关闭优化
+-ignorewarnings
+-verbose
+-dontshrink #关闭压缩
+#-dontwarn
+-keepattributes Signature
+-keepattributes EnclosingMethod
+-keepattributes InnerClasses
+
+#-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-dontskipnonpubliclibraryclassmembers
+-keepparameternames
+
+-keepattributes *Annotation*
+-keepattributes Exceptions
+-dontwarn android.support.**
+-keep class android.support.** { *; }
+
+# Preserve all View implementations, their special context constructors, and
+# their setters.
+-keep public class * extends android.view.View {
+    public <init>(android.content.Context);
+    public <init>(android.content.Context, android.util.AttributeSet);
+    public <init>(android.content.Context, android.util.AttributeSet, int);
+    public void set*(...);
+    public void get*(...);
+}
+
+# Preserve all fundamental application classes.
+-keep public class * extends android.app.Activity
+-keep public class * extends android.app.Application
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+-keep public class * extends android.content.ContentProvider
+-keep public class * extends java.lang.Throwable {*;}
+-keep public class * extends java.lang.Exception {*;}
 
 # 联通取号、认证混淆
  -dontwarn com.unicom.xiaowo.login.**
