@@ -60,8 +60,8 @@
 -keep public class * extends java.lang.Exception {*;}
 
 # 联通取号、认证混淆
- -dontwarn com.unicom.xiaowo.login.**
- -keep class com.unicom.xiaowo.login.**{*;}
+ -dontwarn com.unicom.xiaowo.**
+ -keep class com.unicom.xiaowo.**{*;}
 
 # 移动混淆
  -dontwarn com.cmic.sso.sdk.**
