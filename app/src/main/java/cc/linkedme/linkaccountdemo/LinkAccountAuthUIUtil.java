@@ -43,8 +43,8 @@ public class LinkAccountAuthUIUtil {
 //                .setSwitchOffsetX(10)
 //                .setSwitchOffsetRightX(10)
 
-                .setAppPrivacyOne("LinkedME", "http://www.linkedme.cc")
-                .setAppPrivacyList("附加协议一#http://www.linkedme.cc","附加协议二#http://www.linkedme.cc")
+                .setAppPrivacyOne("用户隐私协议", "http://www.baidu.com")
+                .setAppPrivacyList("附加协议一#http://www.baidu.com","附加协议二#http://www.baidu.com")
                 .setPrivacyOffset(16, 16, 16, 6)
                 .setPrivacyDecorator("登录即同意", "和", "、", "");
 
@@ -123,7 +123,7 @@ public class LinkAccountAuthUIUtil {
 //                .setSwitchOffsetX(10)
 //                .setSwitchOffsetRightX(10)
 
-                .setAppPrivacyOne("LinkedME", "http://www.linkedme.cc")
+                .setAppPrivacyOne("用户隐私协议", "http://www.baidu.com")
                 .setPrivacyOffset(16, 16, 16, 6)
                 .setPrivacyDecorator("登录即同意", "和", "、", "");
 
@@ -182,7 +182,7 @@ public class LinkAccountAuthUIUtil {
 //                .setSwitchOffsetX(10)
 //                .setSwitchOffsetRightX(10)
 
-                .setAppPrivacyOne("LinkedME", "http://www.linkedme.cc")
+                .setAppPrivacyOne("用户隐私协议", "http://www.baidu.com")
                 .setPrivacyOffset(16, 16, 16, 6)
                 .setPrivacyDecorator("登录即同意", "和", "、", "");
 
@@ -245,7 +245,7 @@ public class LinkAccountAuthUIUtil {
 //                .setSwitchOffsetX(10)
 //                .setSwitchOffsetRightX(10)
 
-                .setAppPrivacyOne("LinkedME", "http://www.linkedme.cc")
+                .setAppPrivacyOne("用户隐私协议", "http://www.baidu.com")
                 .setPrivacyOffset(16, 16, 16, 6)
                 .setPrivacyDecorator("登录即同意", "和", "、", "");
 
