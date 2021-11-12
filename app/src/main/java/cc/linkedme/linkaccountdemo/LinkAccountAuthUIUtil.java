@@ -44,6 +44,7 @@ public class LinkAccountAuthUIUtil {
 //                .setSwitchOffsetRightX(10)
 
                 .setAppPrivacyOne("LinkedME", "http://www.linkedme.cc")
+                .setAppPrivacyList("附加协议一#http://www.linkedme.cc","附加协议二#http://www.linkedme.cc")
                 .setPrivacyOffset(16, 16, 16, 6)
                 .setPrivacyDecorator("登录即同意", "和", "、", "");
 
