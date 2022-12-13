@@ -64,5 +64,5 @@ repositories {
 dependencies {
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    implementation(name: 'linkaccount-v1.0.42', ext: 'aar')
+    implementation(name: 'linkaccount-v1.0.43', ext: 'aar')
 }
