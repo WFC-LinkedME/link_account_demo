@@ -62,10 +62,16 @@
 # 联通取号、认证混淆
  -dontwarn com.unicom.xiaowo.**
  -keep class com.unicom.xiaowo.**{*;}
+# 2023-06-23 新增联通在线混淆配置
+ -dontwarn com.sdk.**
+  -keep class com.sdk.** { *;}
 
 # 移动混淆
  -dontwarn com.cmic.sso.sdk.**
  -keep class com.cmic.sso.sdk.**{*;}
+# 2023-09-05 新增移动升级SDK混淆配置
+ -dontwarn com.cmic.gen.sdk.**
+ -keep class com.cmic.gen.sdk.**{*;}
 
 # 电信混淆
  -dontwarn cn.com.chinatelecom.account.**
