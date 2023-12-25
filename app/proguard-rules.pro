@@ -59,9 +59,6 @@
 -keep public class * extends java.lang.Throwable {*;}
 -keep public class * extends java.lang.Exception {*;}
 
-# 联通取号、认证混淆
- -dontwarn com.unicom.xiaowo.**
- -keep class com.unicom.xiaowo.**{*;}
 # 2023-06-23 新增联通在线混淆配置
  -dontwarn com.sdk.**
   -keep class com.sdk.** { *;}
